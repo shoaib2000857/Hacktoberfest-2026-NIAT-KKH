@@ -1,6 +1,6 @@
 # Known limitations
 
-- Live Gemma has not been verified without a configured API key. Mocked tests validate pipeline behavior, not model accuracy.
+- Live Gemma 4 access is verified by a successful READY smoke response. Full cloud multimodal accuracy still needs evaluation. Mocked tests validate pipeline behavior, not model accuracy. Real Ollama text inference has separately been run.
 - No connected browser was available for visual QA, responsive screenshots, or browser E2E verification. CSS and build checks do not substitute for these checks.
 - Local single-user application; no login, public sharing, encryption at rest or deployment hardening. Use loopback only.
 - SQLite persists versioned dossier JSON rather than normalized SQLAlchemy/Alembic models. Use one API worker. Mutating a source during analysis is blocked, but concurrent multi-client ingestion is not a supported deployment topology.
@@ -13,4 +13,4 @@
 - Graph uses deterministic column placement, not a force-directed layout. Full graph finding filters are deferred; Findings has classification/search filters.
 - PDF reports use ReportLab base fonts and replace rupee signs with INR. Broader Unicode scripts require an embedded licensed Unicode font. JSON/Markdown retain the original Unicode quotes.
 - No URL extraction, email-export parser, source deletion within a dossier, auth, share links, browser extension, AI-text detector, embeddings, or deployed service. Images of emails and pasted email text work.
-- No public GitHub repository or event submission has been created. Submission readiness still requires live model verification, multimodal demo, visual QA, public code/license access and team information.
+- Application source is public in `shoaib2000857/Hacktoberfest-2026-NIAT-KKH`, branch `promisetrap`. The organizer's main branch is preserved. No event submission has been made. Submission readiness still requires a multimodal demo, visual QA, team information and completed challenge evidence.

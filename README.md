@@ -52,7 +52,17 @@ Open http://127.0.0.1:3000. API documentation: http://127.0.0.1:8000/docs. Next.
 
 Google's [official API documentation](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api) documents these Gemma models and image inputs. This repository uses the official `google-genai` Python SDK. Source images and rendered PDF pages are sent with source text. Responses are parsed and validated with Pydantic; malformed output gets one bounded repair attempt. Transient provider failures receive bounded backoff and explicit timeouts. No successful response is fabricated.
 
-**Initial verification status:** all local engine/API tests and frontend checks passed. Live Gemma inference was not run because no API key was configured. Successful local tests do not establish live model access or extraction quality. Browser visual/E2E verification was unavailable in the connected environment. See [evaluation](docs/evaluation.md).
+**Verification:** 36 local engine/API tests, TypeScript and production build pass. Real Ollama extraction has run against the synthetic internship documents and the engine produced three text-verified contradictions from its claims. Live `gemma-4-26b-a4b-it` access returned `READY`; cloud extraction accuracy is a separate check. Local model runs never count as Gemma 4 inference. Browser visual/E2E verification was unavailable in the connected environment. See [evaluation](docs/evaluation.md).
+
+## Ollama local validation
+
+The investigation toolbar offers two explicit providers: **Gemma 4 · Gemini API** and **Ollama · local validation**. Local Ollama is the initial selection while cloud access is being configured. The model selector lists installed completion models; models marked vision support image inputs. Default: `gemma3:4b`. Set `OLLAMA_MODEL` and the loopback-only `OLLAMA_BASE_URL` in the backend environment if needed. There is no silent fallback between providers.
+
+```powershell
+.\.venv\Scripts\python.exe scripts\validate_ollama.py --model gemma3:4b
+```
+
+This sends synthetic text sources through actual local inference, persists the investigation, and verifies JSON/Markdown/PDF exports. `--vision` adds a synthetic poster image. `--provider gemma` uses the configured cloud Gemma 4 model instead. Ollama uses schema-constrained JSON and the same Pydantic/evidence checks as Gemma. Its output is recorded as `ollama:<model>`. Local runs do not establish eligibility for the dedicated Gemma 4 track. See [Ollama structured-output documentation](https://docs.ollama.com/capabilities/structured-outputs).
 
 ## Original engine contribution
 

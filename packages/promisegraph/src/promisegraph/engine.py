@@ -26,6 +26,52 @@ def normalize(c: Claim) -> Claim:
                     c.value = float(Decimal(numeric.group(1).replace(',', '')))
                 except InvalidOperation:
                     pass
+    # Normalize explicit quoted terms, independently of an extractor's vocabulary.
+    # This never creates evidence: the quote is subsequently verified against its source.
+    quote = c.original_text.lower()
+    money = re.search(r'(₹|\bINR\s*|\bRs\.?\s*|\$|\bUSD\s*|€)\s*([\d,]+(?:\.\d+)?)', c.original_text, re.IGNORECASE)
+    amount = float(money.group(2).replace(',', '')) if money else None
+    quoted_currency = {'₹':'INR','$':'USD','€':'EUR'}.get(money.group(1).strip(), 'USD' if money and money.group(1).strip().upper()=='USD' else 'INR') if money else None
+    free_registration = re.search(r'\b(?:free registration|registration (?:is |costs )?(?:free|nothing)|no registration fees? |no registration fees?\b)', quote)
+    fee = re.search(r'\b(?:application|registration|processing)\s+fee\b', quote)
+    certificate = re.search(r'\bcertificates?\b', quote)
+    stipend = re.search(r'\bstipend\b', quote)
+    optional = bool(re.search(r'\boptional\b', quote))
+    conditional = bool(re.search(r'\b(?:subject to|based on|depends on|provided that|conditional on)\b', quote))
+    guarantee = bool(re.search(r'\b(?:guaranteed|fixed)\b', quote)) and not bool(re.search(r'\b(?:not|no) guaranteed\b', quote))
+    if optional:
+        c.modality = 'optional'
+    if free_registration:
+        c.category,c.subject,c.predicate,c.value = 'financial','registration','required_fee',0.0
+        c.modality = 'required'
+    elif fee and amount is not None:
+        c.category,c.subject,c.predicate,c.value = 'financial','registration','required_fee',amount
+        c.currency = quoted_currency
+        if 'mandatory' in quote or 'required' in quote:
+            c.modality = 'required'
+    elif optional and certificate and amount is not None:
+        c.category,c.subject,c.predicate,c.value = 'financial','printed certificate' if 'printed' in quote else 'certificate','required_fee',amount
+        c.currency = quoted_currency
+    elif stipend:
+        c.category,c.subject,c.predicate = 'compensation','internship','compensation'
+        if amount is not None:
+            c.value,c.currency = amount,quoted_currency
+        if 'monthly' in quote or '/month' in quote or 'per month' in quote:
+            c.unit = 'month'
+        if guarantee:
+            c.modality = 'guaranteed'
+        elif conditional:
+            c.modality = 'conditional'
+    elif certificate:
+        c.category,c.subject,c.predicate = 'certification','participation','certification'
+        if guarantee:
+            c.modality = 'guaranteed'
+        elif conditional:
+            c.modality = 'conditional'
+    if c.modality == 'conditional':
+        for qualifier in ('performance','evaluation','attendance'):
+            if qualifier in quote and qualifier not in c.conditions:
+                c.conditions.append(qualifier)
     return c
 
 def candidates(claims: list[Claim]):

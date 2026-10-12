@@ -2,7 +2,8 @@ import pytest
 from promisegraph import Claim, investigate, graph, normalize
 
 def claim(id='a',source='s1',**kw):
-    return Claim(id=id,source_id=source,category='financial',subject=kw.pop('subject','registration'),predicate='required_fee',original_text=kw.pop('original_text','Registration is free.'),normalized_summary='Registration fee',value=kw.pop('value',0),currency=kw.pop('currency','INR'),**kw)
+    value=kw.pop('value',0)
+    return Claim(id=id,source_id=source,category='financial',subject=kw.pop('subject','registration'),predicate='required_fee',original_text=kw.pop('original_text',f'Declared value: {value}.'),normalized_summary='Registration fee',value=value,currency=kw.pop('currency','INR'),**kw)
 
 def sources(a,b,**metadata):
     return {'s1':{'filename':'ad','extracted_text':a.original_text,**metadata},'s2':{'filename':'terms','extracted_text':b.original_text,**metadata}}
@@ -36,8 +37,12 @@ def test_currency_mismatch_not_numeric_conflict():
     a,b=claim(),claim('b','s2',value=499,currency='USD')
     assert not investigate([a,b],sources(a,b))[1]
 
+def test_free_fee_without_currency_is_comparable():
+    a,b=claim(currency=None),claim('b','s2',value=499)
+    assert investigate([a,b],sources(a,b))[1][0].status=='contradiction'
+
 def test_guarantee_condition_conflict():
-    a,b=claim(modality='guaranteed'),claim('b','s2',modality='conditional',conditions=['performance'])
+    a,b=claim(modality='guaranteed',original_text='Guaranteed certificate.'),claim('b','s2',modality='conditional',conditions=['evaluation'],original_text='Certificate subject to evaluation.')
     fs=investigate([a,b],sources(a,b))[1]
     assert fs[0].status=='contradiction'
 
@@ -80,3 +85,19 @@ def test_upload_order_does_not_imply_drift():
 def test_conditions_differ_scope_review():
     a,b=claim(conditions=['early bird']),claim('b','s2',value=499,conditions=['late entry'])
     assert investigate([a,b],sources(a,b))[1][0].status=='potential_conflict'
+
+def test_normalizes_explicit_quote_when_model_fields_are_generic():
+    a=claim(value=None,original_text='Free registration.')
+    a.category='compensation';a.subject='launchpad fellowship';a.predicate='offers'
+    b=claim('b','s2',value=None,original_text='Mandatory ₹499 processing fee.')
+    b.category='financial/registration';b.subject='processing fee';b.predicate='required'
+    cs,fs=investigate([a,b],sources(a,b))
+    assert fs[0].status=='contradiction'
+    assert cs[0].value==0 and cs[1].value==499 and cs[1].currency=='INR'
+
+def test_quote_normalization_preserves_optional_service_scope():
+    a=claim(original_text='Registration is free.')
+    b=claim('b','s2',value=None,original_text='Optional printed certificate costs ₹200.')
+    b.subject='registration';b.category='financial/registration';b.predicate='required'
+    cs,fs=investigate([a,b],sources(a,b))
+    assert cs[1].modality=='optional' and cs[1].subject=='printed certificate' and not fs
