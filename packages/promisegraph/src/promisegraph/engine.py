@@ -8,7 +8,7 @@ from .schemas import Claim, Finding
 
 ALIASES = {'application': 'registration', 'application fee': 'required_fee', 'registration fee': 'required_fee', 'fee': 'required_fee', 'stipend': 'compensation', 'salary': 'compensation', 'certificate': 'certification'}
 
-def normalize(c: Claim) -> Claim:
+def normalize(c: Claim, from_quote: bool = True) -> Claim:
     c = c.model_copy(deep=True)
     for key in ('subject', 'predicate', 'category', 'audience', 'stage'):
         value = getattr(c, key).strip().lower()
@@ -23,15 +23,18 @@ def normalize(c: Claim) -> Claim:
             numeric = re.fullmatch(r'(?:₹|\$|€|INR\s*|USD\s*)?([\d,]+(?:\.\d+)?)', raw)
             if numeric:
                 try:
-                    c.value = float(Decimal(numeric.group(1).replace(',', '')))
+                    c.value = str(Decimal(numeric.group(1).replace(',', ''))) if c.scope is not None else float(Decimal(numeric.group(1).replace(',', '')))
                 except InvalidOperation:
                     pass
+    if not from_quote:
+        return c
     # Normalize explicit quoted terms, independently of an extractor's vocabulary.
     # This never creates evidence: the quote is subsequently verified against its source.
+    structured_identity = (c.category,c.subject,c.predicate) if c.scope is not None else None
     quote = c.original_text.lower()
     money = re.search(r'(₹|\bINR\s*|\bRs\.?\s*|\$|\bUSD\s*|€)\s*([\d,]+(?:\.\d+)?)', c.original_text, re.IGNORECASE)
-    amount = float(money.group(2).replace(',', '')) if money else None
-    quoted_currency = {'₹':'INR','$':'USD','€':'EUR'}.get(money.group(1).strip(), 'USD' if money and money.group(1).strip().upper()=='USD' else 'INR') if money else None
+    amount = (str(Decimal(money.group(2).replace(',', ''))) if c.scope is not None else float(money.group(2).replace(',', ''))) if money else None
+    quoted_currency = {'₹':'INR','$':'USD','€':'EUR','EUR':'EUR','USD':'USD','INR':'INR'}.get(money.group(1).strip().upper(),'INR') if money else None
     free_registration = re.search(r'\b(?:free registration|registration (?:is |costs )?(?:free|nothing)|no registration fees? |no registration fees?\b)', quote)
     fee = re.search(r'\b(?:application|registration|processing)\s+fee\b', quote)
     certificate = re.search(r'\bcertificates?\b', quote)
@@ -70,8 +73,10 @@ def normalize(c: Claim) -> Claim:
             c.modality = 'conditional'
     if c.modality == 'conditional':
         for qualifier in ('performance','evaluation','attendance'):
-            if qualifier in quote and qualifier not in c.conditions:
+            if qualifier in quote and not any(qualifier in condition.lower() for condition in c.conditions):
                 c.conditions.append(qualifier)
+    if structured_identity:
+        c.category,c.subject,c.predicate=structured_identity
     return c
 
 def candidates(claims: list[Claim]):
@@ -85,6 +90,7 @@ def candidates(claims: list[Claim]):
                     yield a, b
 
 def verify(c: Claim, sources: dict) -> bool:
+    c.text_start,c.text_end,c.page_number=None,None,None
     source = sources.get(c.source_id)
     if not source or not c.original_text.strip():
         return False
@@ -98,9 +104,17 @@ def verify(c: Claim, sources: dict) -> bool:
         return False
     c.text_start, c.text_end = start, start + len(c.original_text)
     c.location_quality = 'exact'
+    for page in source.get('pages',[]):
+        if c.original_text in page['text']:
+            c.page_number=page['page_number']
+            break
     return True
 
 def compare(a: Claim, b: Claim, sources: dict) -> Finding | None:
+    if a.scope is not None or b.scope is not None:
+        from .extensions import compare_extended
+        result=compare_extended(a,b,sources)
+        return result if result.status!='consistent' else None
     if a.modality == 'optional' or b.modality == 'optional':
         return None
     scope_mismatch = any(getattr(a, k) != getattr(b, k) and 'unspecified' not in (getattr(a, k), getattr(b, k)) for k in ('audience', 'stage'))
@@ -135,6 +149,9 @@ def compare(a: Claim, b: Claim, sources: dict) -> Finding | None:
     if a.effective_at != b.effective_at and a.effective_at and b.effective_at and status != 'changed_term':
         status = 'potential_conflict'
         limitations.append('Effective periods differ.')
+    if status=='contradiction' and (a.audience=='unspecified' or b.audience=='unspecified'):
+        status='potential_conflict'
+        limitations.append('Applicant audience is not established in both claims; equivalence is uncertain.')
     if a.predicate == 'deadline' and value_diff:
         try:
             date.fromisoformat(str(a.value)); date.fromisoformat(str(b.value))
@@ -172,10 +189,10 @@ def investigate(claims: list[Claim], sources: dict) -> tuple[list[Claim], list[F
         raise ValueError('Duplicate claim identifiers')
     if any(c.source_id not in sources for c in claims):
         raise ValueError('Unknown source reference')
-    normalized = [normalize(c) for c in claims]
+    normalized = [normalize(c,from_quote=c.review_status!='confirmed') for c in claims]
     for c in normalized:
         verify(c, sources)
-    findings = [f for a,b in candidates(normalized) if (f := compare(a,b,sources))]
+    findings = [f for a,b in candidates([c for c in normalized if c.review_status!='rejected']) if (f := compare(a,b,sources))]
     return normalized, findings
 
 def graph(claims: list[Claim], findings: list[Finding], sources: dict) -> dict:
@@ -184,6 +201,6 @@ def graph(claims: list[Claim], findings: list[Finding], sources: dict) -> dict:
     nodes += [{'id': f.id, 'kind': 'finding', 'label': f.title, 'status': f.status} for f in findings]
     edges = [{'id': 'contains-'+c.id, 'source': c.source_id, 'target': c.id, 'relationship': 'contains_claim'} for c in claims]
     for f in findings:
-        relation = {'contradiction': 'contradicts', 'changed_term': 'updates', 'missing_disclosure': 'qualifies'}.get(f.status, 'references')
+        relation = {'contradiction': 'contradicts', 'changed_term': 'updates', 'missing_disclosure': 'qualifies', 'material_qualification':'qualifies'}.get(f.status, 'references')
         edges += [{'id': f.id+'-'+cid, 'source': cid, 'target': f.id, 'relationship': relation} for cid in [f.claim_a_id, f.claim_b_id]]
     return {'nodes': nodes, 'edges': edges}

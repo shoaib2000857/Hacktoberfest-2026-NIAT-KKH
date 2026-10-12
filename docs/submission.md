@@ -21,16 +21,25 @@ Independently installable PromiseGraph package: claim normalization, indexed com
 
 ## Open-source evidence to attach
 
-- Public project repository URL: **pending**.
+- Application branch URL: https://github.com/shoaib2000857/Hacktoberfest-2026-NIAT-KKH/tree/promisetrap — verify public visibility and the published enhancement commit before entry.
 - MIT license at repository root and documented separate model terms.
 - Package source, negative-case tests, reproducible setup and real working demo.
 - Explain TattvaDrishti inspiration; no supplied TattvaDrishti code was copied.
 
 ## Submission blockers
 
-Live model verification, rendered UI QA/screenshots, public repository URL, team names, demo recording/link, and final event-template completion. The user confirmed the authorized build window had started; record actual development timing honestly and confirm organizer-specific eligibility. No entry has been submitted.
+Live multimodal model verification, confirmed public release links, team names, demo recording/link, and final event-template completion. Browser screenshots and local validation are now recorded; record actual development timing honestly and confirm organizer-specific eligibility. No entry has been submitted.
 
 Official platform: https://www.mlh.com/events/hacktoberfest-hack-day-hyderabad-x-niat/submissions/new  
 Organizer repository: https://github.com/niat-KKH/Hacktoberfest-2026-NIAT-KKH
 
 The organizer PR and MLH platform entry are separate. Copy their current `SUBMISSION_TEMPLATE.md` before submitting. Only publish or submit after explicit user authorization.
+
+
+## Enhancement release evidence
+
+- See [release report](release-report.md), [evaluation](evaluation.md), [recorded offline fixture results](evaluation-results.json), [demo script](demo-script.md) and [screenshots](screenshots/).
+- Original modules: `packages/promisegraph/src/promisegraph/advanced/`, with API compatibility bridge `extensions.py`. ScopeGuard, financial calculations and isolated simulations operate without model credentials.
+- Dedicated real multimodal validation: `scripts/validate_gemma.py`; current host has no configured key. Authored/mocked tests cannot establish the Gemma prize requirement.
+- Organizer main branch contains submission records; the application remains on the team's separate application branch. Do not merge application code into the organizer submission repository. The organizer PR and MLH form are separate operations and neither has been submitted here.
+- Intent is to target both categories. Confirm whether simultaneous category entry is allowed, official build window/deadline, exact current MLH form and demo timing with organizers. Markdown challenge links were checked against the actual `Gemma_4_Challenge.pdf`, `Open_Source_AI_Challenge.pdf` and `Submission_Guide.pdf`; the guide includes an older platform URL, so do not assume it is the current form.

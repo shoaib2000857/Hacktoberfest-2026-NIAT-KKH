@@ -2,23 +2,32 @@
 
 ```mermaid
 flowchart LR
-  UI[Next.js evidence workspace] -->|same-origin /api/v1| API[FastAPI local API]
-  API --> Store[Versioned SQLite dossier records]
-  API --> Files[Original bytes under UUID filenames]
-  API --> Job[Persisted in-process analysis stages]
-  Job --> Gemma[Gemma 4 via google-genai]
-  Gemma --> Validate[Pydantic extraction validation]
-  Validate --> PG[PromiseGraph normalization and candidate matching]
-  PG --> Rules[Scope-aware deterministic rules]
-  Rules --> Semantic[Bounded Gemma review of ambiguous findings]
-  Semantic --> Evidence[Quote verification and conservative classification]
-  Evidence --> Store
-  Store --> Graph[Source / claim / finding provenance]
-  Store --> Reports[JSON / Markdown / PDF reports]
+  UI[Existing Next.js evidence workspace] -->|same origin API proxy| API[FastAPI loopback API]
+  API --> Files[Original source bytes and recorded SHA256]
+  API --> DB[SQLite dossier records and extraction cache]
+  API --> Job[Persisted in-process stages]
+  Job --> Model[Explicit Gemma 4 or Ollama adapter]
+  Model --> Schema[Pydantic output validation]
+  Schema --> Normalize[Claim normalization and candidate buckets]
+  Normalize --> Scope[ScopeGuard]
+  Scope --> Rules[Deterministic PromiseGraph rules]
+  Rules --> Semantic[Bounded semantic suggestions]
+  Semantic --> Verify[Independent source references and anchors]
+  Verify --> DB
+  DB --> Lens[Evidence Lens and analyst review]
+  DB --> Tools[Journey / finance / conditions / receipts]
+  UI --> Lab[Isolated hypothetical copies]
+  Lab --> Rules
 ```
 
-The API stores source bytes outside the database and persists complete typed analysis records in a single versioned document table. This deliberately avoids a premature distributed system. The database migration is idempotent. A multi-tenant version should migrate normalized records through Alembic, add authorization and authenticated file storage, and move jobs to a worker queue.
+The retained API schema supports legacy claims and adds typed rich scope, criteria, monetary qualifiers, refund/timing fields and separate model suggestions. `promisegraph/extensions.py` bridges that schema to independently testable modules in `promisegraph/advanced/`. Existing legacy routes, baseline authored example and Ollama identity remain supported.
 
-React Flow shows the supplied evidence chain. It supports pan/zoom, draggable nodes, selection, and accessible evidence-list equivalents. Findings filters are in the Findings view; graph filtering is deferred. Selecting a source or claim opens its source record; selecting a finding opens the comparison dialog.
+Source dates/stages are user metadata, distinct from a claim's process scope. Unknown dates give Document Sequence grouped by stages; dated shared versions yield changed terms. Candidate retrieval remains conservative exact normalized category/subject/predicate buckets; semantically different names can be missed. Semantic suggestions never overwrite deterministic classifications.
 
-Native Windows development is supported. The frontend proxies to Python on loopback. There is no browser-side API credential and no external connector dependency.
+Original bytes persist under UUID filenames. Extraction cache keys include source ID, recorded SHA256, actual model, prompt version and date/stage/version metadata. Bytes are checked against their recorded hash before inference/cache reuse. Successful sources survive partial failures. Jobs interrupted on restart become retryable failed cases. SQLite cache migration is idempotent and additive. Only one API worker is supported.
+
+Review history records analysis, findings, metadata and claim corrections. Recalculation retains reviews only for unchanged finding semantics. PromiseLab never saves edited hypothetical fields. Personal Reality inputs are transient. Draft generation records provider identity; no send operation exists.
+
+React Flow keeps the existing graph and adds filters, connected-node highlighting and a detail panel. Every edge derives from stored source/claim/finding records. Text/PDF anchors are independently located; PDF pages render into bounded PNG previews. Image text is explicitly approximate. Graphs show provenance, never hidden reasoning.
+
+Both servers bind loopback. No cross-origin allowance is enabled; browser origins and Host headers are restricted to supported localhost surfaces. UUID file routes are protected by this local boundary, not by user authentication. Internet deployment requires authentication and a different hosting design.

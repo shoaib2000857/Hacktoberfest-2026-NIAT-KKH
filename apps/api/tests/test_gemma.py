@@ -60,3 +60,10 @@ def test_model_substitution_rejected(monkeypatch):
     monkeypatch.setenv('GEMMA_MODEL','gemini-anything')
     with pytest.raises(RuntimeError,match='substitution is disabled'):
         GemmaClient()
+
+def test_model_cannot_approve_its_own_extraction():
+    p=payload();p['claims'][0].update(review_status='confirmed',location_quality='exact',text_start=17,text_end=30)
+    c,_=adapter([json.dumps(p)])
+    claim=c.extract_claims(SOURCE,[])[0]
+    assert claim.review_status=='unreviewed' and claim.location_quality=='unknown'
+    assert claim.text_start is None and claim.text_end is None

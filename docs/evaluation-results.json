@@ -1,0 +1,116 @@
+{
+  "method": "Real FastAPI routes and PromiseGraph, authored fictional claims. No Google or Ollama request.",
+  "scenarios": [
+    {
+      "scenario": "internship",
+      "claims": 6,
+      "expected": [
+        "contradiction",
+        "contradiction",
+        "contradiction"
+      ],
+      "actual": [
+        "contradiction",
+        "contradiction",
+        "contradiction"
+      ],
+      "passed": true,
+      "financial": {
+        "INR": {
+          "mandatory_upfront_cost": "499",
+          "optional_fees": "0",
+          "deposits": "0",
+          "fixed_deductions": "0",
+          "guaranteed_compensation": [],
+          "conditional_compensation": [
+            {
+              "amount": "20000",
+              "unit": "month",
+              "claim_id": "a98f2415-05c5-4dc6-86d5-994b481dbfd3",
+              "conditions": [
+                "Performance evaluation"
+              ]
+            }
+          ],
+          "potential_compensation": [
+            {
+              "amount": "20000",
+              "unit": "month",
+              "claim_id": "471a3283-8f54-491b-b644-7fbcbfd9d4a3",
+              "conditions": []
+            }
+          ],
+          "claim_ids": [
+            "8b913466-7234-400a-9480-1e70b8d666b6",
+            "7f834610-5a1b-4f0e-82f8-b1fa9b2623ab",
+            "471a3283-8f54-491b-b644-7fbcbfd9d4a3",
+            "a98f2415-05c5-4dc6-86d5-994b481dbfd3"
+          ]
+        }
+      },
+      "model": "Authored fixture; no model inference"
+    },
+    {
+      "scenario": "scholarship",
+      "claims": 3,
+      "expected": [
+        "contradiction"
+      ],
+      "actual": [
+        "contradiction"
+      ],
+      "passed": true,
+      "financial": {
+        "INR": {
+          "mandatory_upfront_cost": "0",
+          "optional_fees": "0",
+          "deposits": "0",
+          "fixed_deductions": "0",
+          "guaranteed_compensation": [],
+          "conditional_compensation": [],
+          "potential_compensation": [],
+          "claim_ids": [
+            "44802e2c-62e7-4d01-afa9-b6095bf79c9b"
+          ]
+        }
+      },
+      "model": "Authored fixture; no model inference"
+    },
+    {
+      "scenario": "optional",
+      "claims": 2,
+      "expected": [],
+      "actual": [],
+      "passed": true,
+      "financial": {
+        "INR": {
+          "mandatory_upfront_cost": "0",
+          "optional_fees": "200",
+          "deposits": "0",
+          "fixed_deductions": "0",
+          "guaranteed_compensation": [],
+          "conditional_compensation": [],
+          "potential_compensation": [],
+          "claim_ids": [
+            "a2795dd7-fc71-4148-9fd2-202fb29a6d99",
+            "4adc1157-5f88-45cc-9b47-52238b421759"
+          ]
+        }
+      },
+      "model": "Authored fixture; no model inference"
+    },
+    {
+      "scenario": "deadline",
+      "claims": 2,
+      "expected": [
+        "changed_term"
+      ],
+      "actual": [
+        "changed_term"
+      ],
+      "passed": true,
+      "financial": {},
+      "model": "Authored fixture; no model inference"
+    }
+  ]
+}

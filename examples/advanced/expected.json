@@ -1,0 +1,26 @@
+{
+  "internship": {
+    "claims": 6,
+    "expected": [
+      "contradiction",
+      "contradiction",
+      "contradiction"
+    ]
+  },
+  "scholarship": {
+    "claims": 3,
+    "expected": [
+      "contradiction"
+    ]
+  },
+  "optional": {
+    "claims": 2,
+    "expected": []
+  },
+  "deadline": {
+    "claims": 2,
+    "expected": [
+      "changed_term"
+    ]
+  }
+}

@@ -4,7 +4,7 @@
 
 PromiseTrap investigates differences between advertisements, registration forms, offer letters, and other source documents. Gemma 4 performs multimodal structured extraction; the original **PromiseGraph** package normalizes and compares claims, verifies quotations, and builds evidence provenance. The product investigates claims, not people, and never produces a fraud probability.
 
-The interface pairs matte noir with antique bronze and editorial typography. Evidence views stay calm and functional: source records, side-by-side highlighted quotations, analyst review, interactive provenance, promise drift, and downloadable dossiers.
+The interface pairs matte noir with antique bronze and editorial typography. Evidence views stay calm and functional: source records, side-by-side highlighted quotations, analyst review, interactive provenance, Promise Journey, Reality Calculator, condition dependencies, PromiseLab, clarification drafts, receipts, and downloadable dossiers.
 
 ## Run on Windows
 
@@ -33,6 +33,32 @@ npm.cmd run dev
 
 Open http://127.0.0.1:3000. API documentation: http://127.0.0.1:8000/docs. Next.js proxies `/api/v1` to the backend; the API key stays in Python. Optional `API_URL` configures the server-side proxy destination. Restart the API after changing its environment; restart Next.js after changing its proxy destination.
 
+## Run on macOS / Linux
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+npm ci
+cp .env.example .env
+```
+
+Set the backend key in the local `.env` for live Gemma. Then use two terminals:
+
+```sh
+.venv/bin/python -m uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000
+npm run dev
+```
+
+```sh
+.venv/bin/python -m pytest -q
+npm run typecheck
+npm run build
+.venv/bin/python scripts/evaluate_fixtures.py
+.venv/bin/python scripts/validate_gemma.py --scenario internship --output data/live-gemma.json
+```
+
+The last command is a separately identified live image test, requires the running backend and a key, and saves actual model output locally. It has no mock fallback. [Release report](docs/release-report.md) records implemented features, verification, limitations and submission gaps. [Demo script](docs/demo-script.md) includes a disclosed offline fallback.
+
 ## Try the workflow
 
 1. Start an investigation and name the question.
@@ -40,7 +66,13 @@ Open http://127.0.0.1:3000. API documentation: http://127.0.0.1:8000/docs. Next.
 3. Use Methodology & help → Verify live Gemma access, or run the smoke test below.
 4. Run Gemma analysis. Actual extraction/verification stages appear while the persisted background job runs.
 5. Inspect findings and exact quotes; open original source previews. Accept, reject, or leave findings unresolved, with analyst notes.
-6. Explore the graph and timeline; export PDF, Markdown or JSON.
+6. Assign document stages/dates in Sources; explore Promise Journey, condition requirements, and the graph's filters/connected evidence.
+7. Review financial values in Reality Calculator. Conditional/maximum compensation stays separate from guarantees; unknown refund terms stay unknown.
+8. Open a finding → Test in PromiseLab → Try optional certificate. The actual engine reruns hypothetical structured fields; original evidence remains unchanged.
+9. Challenge This Finding requests an independent interpretation from the selected provider. Suggestions never overwrite the rule classification.
+10. In Report, generate evidence-template questions offline or choose the selected model; edit/copy without sending. Download receipts and compare another copy's hash; export PDF, Markdown or JSON.
+
+Home → **Four fictional evaluation scenarios** provides internship, scholarship, optional-service, and dated-deadline fixtures. **Load images** adds actual PNGs without authored extraction. You must separately run real Gemma to infer those images. Fixtures and live provenance are visibly distinct.
 
 **Explore example** creates a synthetic internship dossier containing nine authored claims. The actual PromiseGraph engine identifies three discrepancies. The interface and model provenance explicitly disclose that this example uses authored claims, not live inference. The optional ₹200 printed certificate is a distinct optional service and is not treated as a registration-fee contradiction. Matching deadlines generate no finding.
 
@@ -52,7 +84,7 @@ Open http://127.0.0.1:3000. API documentation: http://127.0.0.1:8000/docs. Next.
 
 Google's [official API documentation](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api) documents these Gemma models and image inputs. This repository uses the official `google-genai` Python SDK. Source images and rendered PDF pages are sent with source text. Responses are parsed and validated with Pydantic; malformed output gets one bounded repair attempt. Transient provider failures receive bounded backoff and explicit timeouts. No successful response is fabricated.
 
-**Verification:** 36 local engine/API tests, TypeScript and production build pass. Real Ollama extraction has run against the synthetic internship documents and the engine produced three text-verified contradictions from its claims. Live `gemma-4-26b-a4b-it` access returned `READY`; cloud extraction accuracy is a separate check. Local model runs never count as Gemma 4 inference. Browser visual/E2E verification was unavailable in the connected environment. See [evaluation](docs/evaluation.md).
+**Current verification (12 October 2026):** 77 engine/API tests pass, TypeScript checks pass, and the production build passes. Real Chrome interaction checks cover source quotations, PromiseLab, the calculator, graph selection, and mobile layout. See [evaluation](docs/evaluation.md). The live Gemma smoke command was attempted on this host and stopped because `GEMINI_API_KEY` is not configured. No current cloud success or accuracy claim is made. Previously recorded branch notes about READY/Ollama runs are historical and were not reproduced here.
 
 ## Ollama local validation
 
@@ -75,7 +107,7 @@ This sends synthetic text sources through actual local inference, persists the i
 - Exact excerpt verification and conservative downgrades for unsupported quotations.
 - Stable finding identifiers and source → claim → finding provenance.
 
-Gemma semantic comparison reviews bounded ambiguous rule findings. An LLM cannot promote an unverified quotation into a verified contradiction. Review decisions remain attached to stable IDs when equivalent claims recur. This is an original comparison harness, not a renamed third-party harness. It does not expose private chain-of-thought; the graph shows evidence provenance.
+Gemma semantic comparison reviews bounded ambiguous rule findings. An LLM cannot promote an unverified quotation into a verified contradiction. Review decisions remain attached when stable findings retain the same classification, explanation, scope and evidence state; changed findings require fresh review. Prior states are recorded in review history. This is an original comparison harness, not a renamed third-party harness. It does not expose private chain-of-thought; the graph shows evidence provenance.
 
 ## Repository
 
@@ -114,10 +146,10 @@ Safe URL fetching, source deletion within an active dossier, authentication, pub
 
 Application and PromiseGraph: MIT ([LICENSE](LICENSE)). Gemma 4 is an open-weight Google model; its licensing is separate from this application. See the [official model card](https://ai.google.dev/gemma/docs/core/model_card_4) and [official Gemma 4 repository/license](https://huggingface.co/google/gemma-4-26B-A4B-it). Dependencies retain their own licenses.
 
-TattvaDrishti inspired multimodal ingestion, batch analysis, source tracing and descriptive pattern analysis. No TattvaDrishti source code or model weights were supplied or copied. The implementation was created in this initially empty workspace. Contributors: PromiseTrap project team, with Codex-assisted implementation. Record team names and actual development timing before publishing.
+TattvaDrishti inspired multimodal ingestion, batch analysis, source tracing and descriptive pattern analysis. No TattvaDrishti source code or model weights were supplied or copied. This enhancement extends the existing PromiseTrap application on the `promisetrap` branch; the Next.js/FastAPI/SQLite/PromiseGraph architecture and explicit Ollama provider are retained. Contributors: PromiseTrap project team, with Codex-assisted implementation. Record team names and actual development timing before publishing.
 
 ## Hackathon readiness
 
-Built for MLH Hacktoberfest Hack Day 2026, Hyderabad, targeting Best Use of Gemma 4 and Best Open-Source AI Project. The user confirmed the organizer-authorized build window had started. A local implementation is not proof of submission or eligibility: verify event-specific timing and demonstrate live Gemma multimodal extraction. Publish to a public repository with this license, capture a real demo, and complete [the submission draft](docs/submission.md). No repository was published and no entry was submitted by this implementation task.
+Built for MLH Hacktoberfest Hack Day 2026, Hyderabad, targeting Best Use of Gemma 4 and Best Open-Source AI Project. The team must attest to the organizer-authorized build window and development timing. A local implementation is not proof of submission or eligibility: verify event-specific timing and demonstrate live Gemma multimodal extraction. Verify public access to the connected application branch, capture a real Gemma demo, and complete [the submission draft](docs/submission.md). No repository was published and no entry was submitted by this implementation task.
 
-Future engineering priorities: real-model extraction evaluation, visual/browser QA, semantic candidate recall, scope normalization, authenticated deployment and worker infrastructure. Contribute via [CONTRIBUTING.md](CONTRIBUTING.md).
+Future engineering priorities: real-model extraction evaluation, semantic candidate recall, authenticated deployment and worker infrastructure. Contribute via [CONTRIBUTING.md](CONTRIBUTING.md).

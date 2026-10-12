@@ -1,15 +1,18 @@
-# 120-second demo
+# 120-second demonstration
 
-0–15 s: “Advertisements promise us things. The terms can tell a different story. PromiseTrap makes that difference inspectable.” Show the overview.
+Before judging, configure `GEMINI_API_KEY` locally, start both servers, and run `scripts/validate_gemma.py --scenario internship --output data/live-gemma.json`. Review every extracted quote against the fictional PNGs. Record the actual model and analysis timestamp. Warm-up/saved actual model results may be shown only with that provenance disclosed. This release has no saved real Gemma response.
 
-15–35 s: Create a dossier and upload the synthetic internship advertisement, registration form and offer letter. Explain that this is invented test evidence, not a real organization's conduct.
+| Time | Demonstration |
+|---|---|
+| 0–15s | Show the fictional internship poster and the problem: promotions and detailed terms differ. |
+| 15–35s | Home → Four fictional evaluation scenarios → Load internship images. Choose Gemma 4, run analysis, and show actual extracted claims/provenance. If latency exceeds the demo window, show an explicitly disclosed previously saved real run; never relabel authored fixtures. |
+| 35–60s | Open a finding in Evidence Lens. Show the two original excerpts/images, exact versus approximate location labels, ScopeGuard and analyst review. |
+| 60–85s | Promise Journey: advertisement → registration → offer. Reality Calculator: INR 499 upfront, no established guaranteed stipend, conditional maximum and unknown refund terms. |
+| 85–105s | Select the fee finding → Test in PromiseLab → Try optional certificate. Rerun actual structured comparisons; show the original contradiction and hypothetical no-contradiction reason. Reset. |
+| 105–120s | Show source→claim→finding graph, receipt/report download, PromiseGraph code, MIT license and application branch. Gemma interprets evidence; original rules validate comparability and calculations. |
 
-35–65 s: Run live Gemma 4. Show actual extraction stages, source claims, and the recorded model ID. Do not hide errors or imply the authored example was inferred live.
+## Tested offline fallback
 
-65–85 s: Open the registration-fee finding. Point to the exact quoted excerpts in the two source records. Explain scope limitations. Accept or mark unresolved with an analyst note.
+Choose **Use internship fixtures**, clearly saying: “These are authored fictional claims, compared by our real deterministic engine. This is not Gemma inference.” Evidence Lens, calculator, Journey, PromiseLab and offline clarification operate without a key. Use optional fixtures to show no false registration-fee conflict; deadline fixtures show a dated update; scholarship fixtures show a cap below documented tuition and a year-of-study mismatch.
 
-85–105 s: Show the evidence graph and undated document sequence. If demonstrating drift, use the dated sample batch and make the metadata explicit. Show that the optional printed certificate is not treated as a registration conflict.
-
-105–120 s: Export the real report. Show PromiseGraph package tests, project license, and public repository once published. “Gemma reads the evidence; PromiseGraph makes comparisons traceable; you keep the judgment.”
-
-If no live access is available, say: “This is an authored synthetic fixture calculated by PromiseGraph, not live Gemma inference.” It validates the product and rules but does not prove the Gemma track requirement.
+Offline mode demonstrates the application/engine and does not satisfy the live Gemma prize evidence. Check actual organizer demo length, build window, deadlines and permission to enter both categories. Do not imply an event submission is complete.

@@ -3,7 +3,7 @@ from promisegraph import Claim, investigate, graph, normalize
 
 def claim(id='a',source='s1',**kw):
     value=kw.pop('value',0)
-    return Claim(id=id,source_id=source,category='financial',subject=kw.pop('subject','registration'),predicate='required_fee',original_text=kw.pop('original_text',f'Declared value: {value}.'),normalized_summary='Registration fee',value=value,currency=kw.pop('currency','INR'),**kw)
+    return Claim(id=id,source_id=source,category='financial',subject=kw.pop('subject','registration'),predicate='required_fee',original_text=kw.pop('original_text',f'Declared value: {value}.'),normalized_summary='Registration fee',value=value,currency=kw.pop('currency','INR'),audience=kw.pop('audience','all applicants'),**kw)
 
 def sources(a,b,**metadata):
     return {'s1':{'filename':'ad','extracted_text':a.original_text,**metadata},'s2':{'filename':'terms','extracted_text':b.original_text,**metadata}}
